@@ -1,4 +1,4 @@
-# Implementação da Demo 1 do VOLTANEX
+# Implementação da Demo 1 do VOLTENEX
 
 ## Preparação do Ambiente
 - [x] Criar estrutura de diretórios do projeto
@@ -12,7 +12,7 @@
 - [x] Criar interface para configuração de parâmetros
 - [x] Implementar geração periódica de dados
 
-## Criação do Ledger VOLTANEX
+## Criação do Ledger VOLTENEX
 - [x] Definir estrutura de dados do ledger
 - [x] Implementar mecanismo de assinatura digital
 - [x] Criar sistema de armazenamento de registros

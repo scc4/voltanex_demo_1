@@ -1,0 +1,28 @@
+services:
+  - type: web
+    name: voltanex-demo1
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: ELECTRICITY_MAP_API_KEY
+        sync: false
+      - key: WATTTIME_USERNAME
+        sync: false
+      - key: WATTTIME_PASSWORD
+        sync: false
+      - key: LEDGER_SECRET_KEY
+        generateValue: true
+      - key: SIGNATURE_ALGORITHM
+        value: sha256
+      - key: DEFAULT_SIMULATION_INTERVAL
+        value: 300000
+      - key: DEFAULT_EMISSION_FACTOR
+        value: 1
+    healthCheckPath: /
+    autoDeploy: true

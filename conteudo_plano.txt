@@ -1,0 +1,33 @@
+VOLTANEX Phase-1 Workplan
+Brazil-focused energy-to-carbon ledger project
+Objective
+Build a two-stage prototype that tracks Brazilian solar/battery output, converts each kWh into a conservative 1-kg CO₂ offset, and stores every credit in a signed, public VOLTANEX ledger—ready to upgrade to on-chain minting.
+
+Stage 1 – Demo 1 (1-Week Proof-of-Concept)
+Scope Limits (Demo 1)
+No real inverter adapters (simulator only)
+Single static emissions factor (no MEF/benchmark logic)
+No Merkle tree, no UI—raw JSON via Postman/cURL
+
+Stage 2 – Demo 2 (4-Week Investor Prototype)
+Builds directly on Demo 1 code—nothing thrown away.
+Deferred to Phase 3 (Post-funding)
+ERC-1155 on-chain mint & tx-hash storage
+Multi-tenant utility portal and BI warehouse
+OAuth/RBAC hardening & SOC 2 readiness
+
+Stack Summary
+
+Immediate Action Items (Sprint 0 – next 48 h)
+Dev Lead: Request ElectricityMap community API key
+Dev Lead: Request WattTime nonprofit API key
+DevOps: Download latest MCTI CO₂ factor CSV & commit to repo
+DevOps: Provision Lightsail app & RDS Postgres
+DevOps: Create GitHub repo & CI pipeline skeleton
+
+Executive Recap (plain English)
+Week 1: You’ll watch a dummy solar roof generate 1-kg credits in a signed VOLTANEX ledger—already bilingual and brand-stamped.
+Week 4: The same system ingests real devices, uses live marginal grid data, hash-chains every credit, scales to 10 k devices, and shows it all in a polished web dashboard.
+Post-funding: Swap the ledger write for an ERC-1155 mint, add enterprise features, and pursue certification.
+Hand this plan to the dev team; kick off Sprint 0 immediately.
+VOLTANEX is now officially in motion.

@@ -1,0 +1,712 @@
+openapi: 3.0.0
+info:
+  title: VOLTANEX API
+  description: |
+    API para o sistema VOLTANEX de ledger energia-para-carbono, que rastreia a produção de energia solar/bateria no Brasil, 
+    converte cada kWh em um offset conservador de 1 kg CO₂, e armazena cada crédito em um ledger VOLTANEX público e assinado.
+  version: 1.0.0
+  contact:
+    name: Equipe VOLTANEX
+servers:
+  - url: http://localhost:3000
+    description: Servidor de desenvolvimento local
+tags:
+  - name: Status
+    description: Informações sobre o status do sistema
+  - name: Simulador
+    description: Operações relacionadas ao simulador de geração solar
+  - name: Ledger
+    description: Operações relacionadas ao ledger VOLTANEX
+  - name: Conversor
+    description: Operações relacionadas ao conversor de kWh para créditos de carbono
+  - name: APIs Externas
+    description: Operações relacionadas às integrações com APIs externas
+
+paths:
+  /:
+    get:
+      summary: Status do sistema
+      description: Retorna informações sobre o status atual do sistema VOLTANEX
+      tags:
+        - Status
+      responses:
+        '200':
+          description: Informações de status do sistema
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: online
+                  name:
+                    type: string
+                    example: VOLTANEX Demo 1
+                  version:
+                    type: string
+                    example: 1.0.0
+                  description:
+                    type: string
+                    example: Prova de conceito do sistema VOLTANEX de ledger energia-para-carbono
+
+  /api/simulator/start:
+    post:
+      summary: Iniciar simulador
+      description: Inicia um novo simulador de geração solar com o perfil especificado
+      tags:
+        - Simulador
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                profileType:
+                  type: string
+                  description: Tipo de perfil de instalação solar
+                  enum: [RESIDENTIAL_SMALL, RESIDENTIAL_MEDIUM, COMMERCIAL_SMALL, COMMERCIAL_LARGE]
+                  default: RESIDENTIAL_SMALL
+                deviceId:
+                  type: string
+                  description: ID personalizado para o dispositivo (opcional)
+                interval:
+                  type: integer
+                  description: Intervalo de simulação em milissegundos (opcional)
+                  default: 300000
+              required:
+                - profileType
+      responses:
+        '201':
+          description: Simulador iniciado com sucesso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Simulador iniciado com sucesso
+                  simulatorId:
+                    type: string
+                    example: sim-residential_small-abc123
+                  profile:
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                        example: Residencial Pequeno
+                      capacity:
+                        type: number
+                        example: 3.5
+                      efficiency:
+                        type: number
+                        example: 0.78
+                      location:
+                        type: string
+                        example: São Paulo
+                  initialReading:
+                    $ref: '#/components/schemas/SolarReading'
+        '400':
+          description: Parâmetros inválidos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Erro interno do servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/simulator/list:
+    get:
+      summary: Listar simuladores
+      description: Lista todos os simuladores ativos no sistema
+      tags:
+        - Simulador
+      responses:
+        '200':
+          description: Lista de simuladores ativos
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  count:
+                    type: integer
+                    example: 2
+                  simulators:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          example: sim-residential_small-abc123
+                        profile:
+                          type: object
+                          properties:
+                            name:
+                              type: string
+                              example: Residencial Pequeno
+                            capacity:
+                              type: number
+                              example: 3.5
+                            efficiency:
+                              type: number
+                              example: 0.78
+                            isRunning:
+                              type: boolean
+                              example: true
+                        lastReading:
+                          $ref: '#/components/schemas/SolarReading'
+
+  /api/simulator/{id}:
+    get:
+      summary: Obter simulador
+      description: Obtém informações detalhadas sobre um simulador específico
+      tags:
+        - Simulador
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID do simulador
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Informações do simulador
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    example: sim-residential_small-abc123
+                  profile:
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                        example: Residencial Pequeno
+                      capacity:
+                        type: number
+                        example: 3.5
+                      efficiency:
+                        type: number
+                        example: 0.78
+                      isRunning:
+                        type: boolean
+                        example: true
+                  lastReading:
+                    $ref: '#/components/schemas/SolarReading'
+        '404':
+          description: Simulador não encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/simulator/{id}/stop:
+    post:
+      summary: Parar simulador
+      description: Para um simulador específico e remove-o da lista de simuladores ativos
+      tags:
+        - Simulador
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID do simulador
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Simulador parado com sucesso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Simulador parado com sucesso
+                  id:
+                    type: string
+                    example: sim-residential_small-abc123
+        '404':
+          description: Simulador não encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/ledger/entries:
+    get:
+      summary: Listar registros do ledger
+      description: Lista todos os registros armazenados no ledger VOLTANEX
+      tags:
+        - Ledger
+      responses:
+        '200':
+          description: Lista de registros do ledger
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  count:
+                    type: integer
+                    example: 10
+                  entries:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/LedgerEntry'
+
+  /api/ledger/entry/{id}:
+    get:
+      summary: Obter registro do ledger
+      description: Obtém um registro específico do ledger pelo seu ID
+      tags:
+        - Ledger
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID do registro no ledger
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Registro do ledger
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LedgerEntry'
+        '404':
+          description: Registro não encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/ledger/device/{deviceId}:
+    get:
+      summary: Obter registros por dispositivo
+      description: Lista todos os registros do ledger para um dispositivo específico
+      tags:
+        - Ledger
+      parameters:
+        - name: deviceId
+          in: path
+          required: true
+          description: ID do dispositivo
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Registros do dispositivo no ledger
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  deviceId:
+                    type: string
+                    example: sim-residential_small-abc123
+                  count:
+                    type: integer
+                    example: 5
+                  entries:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/LedgerEntry'
+
+  /api/ledger/verify:
+    get:
+      summary: Verificar integridade do ledger
+      description: Verifica a integridade de todos os registros do ledger através das assinaturas digitais
+      tags:
+        - Ledger
+      responses:
+        '200':
+          description: Resultado da verificação de integridade
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  totalEntries:
+                    type: integer
+                    example: 10
+                  validEntries:
+                    type: integer
+                    example: 10
+                  invalidEntries:
+                    type: integer
+                    example: 0
+                  invalidIds:
+                    type: array
+                    items:
+                      type: string
+                    example: []
+
+  /api/ledger/stats:
+    get:
+      summary: Obter estatísticas do ledger
+      description: Obtém estatísticas gerais sobre o ledger VOLTANEX
+      tags:
+        - Ledger
+      responses:
+        '200':
+          description: Estatísticas do ledger
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  totalEntries:
+                    type: integer
+                    example: 10
+                  totalDevices:
+                    type: integer
+                    example: 2
+                  totalCredits:
+                    type: number
+                    example: 15.75
+                  firstEntryDate:
+                    type: string
+                    format: date-time
+                    example: '2025-05-28T13:00:00.000Z'
+                  lastEntryDate:
+                    type: string
+                    format: date-time
+                    example: '2025-05-28T14:30:00.000Z'
+
+  /api/ledger/export:
+    get:
+      summary: Exportar ledger
+      description: Exporta o ledger completo em formato JSON para download
+      tags:
+        - Ledger
+      responses:
+        '200':
+          description: Arquivo JSON do ledger
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  metadata:
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                        example: VOLTANEX Carbon Credit Ledger
+                      version:
+                        type: string
+                        example: 1.0.0
+                      created:
+                        type: string
+                        format: date-time
+                  entries:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/LedgerEntry'
+
+  /api/converter/stats:
+    get:
+      summary: Obter estatísticas de conversão
+      description: Obtém estatísticas sobre a conversão de kWh para créditos de carbono
+      tags:
+        - Conversor
+      responses:
+        '200':
+          description: Estatísticas de conversão
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  totalEntries:
+                    type: integer
+                    example: 10
+                  totalDevices:
+                    type: integer
+                    example: 2
+                  totalKWh:
+                    type: number
+                    example: 15.75
+                  totalCarbonCredits:
+                    type: number
+                    example: 15.75
+                  averageEmissionFactor:
+                    type: number
+                    example: 1.0
+
+  /api/converter/device/{deviceId}:
+    get:
+      summary: Obter total de créditos por dispositivo
+      description: Obtém o total de créditos de carbono gerados por um dispositivo específico
+      tags:
+        - Conversor
+      parameters:
+        - name: deviceId
+          in: path
+          required: true
+          description: ID do dispositivo
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Total de créditos do dispositivo
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  deviceId:
+                    type: string
+                    example: sim-residential_small-abc123
+                  totalCredits:
+                    type: number
+                    example: 8.25
+
+  /api/external/electricity-map/carbon-intensity:
+    get:
+      summary: Obter intensidade de carbono
+      description: Consulta a API do ElectricityMap para obter a intensidade de carbono para uma localização
+      tags:
+        - APIs Externas
+      parameters:
+        - name: lat
+          in: query
+          required: true
+          description: Latitude da localização
+          schema:
+            type: number
+            format: float
+            example: -23.5505
+        - name: lng
+          in: query
+          required: true
+          description: Longitude da localização
+          schema:
+            type: number
+            format: float
+            example: -46.6333
+      responses:
+        '200':
+          description: Dados de intensidade de carbono
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  zone:
+                    type: string
+                    example: BR-CS
+                  carbonIntensity:
+                    type: number
+                    example: 123
+                  datetime:
+                    type: string
+                    format: date-time
+                  updatedAt:
+                    type: string
+                    format: date-time
+                  emissionFactorType:
+                    type: string
+                    example: lifecycle
+        '400':
+          description: Parâmetros inválidos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Erro na consulta à API externa
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/external/watttime/region:
+    get:
+      summary: Obter região WattTime
+      description: Consulta a API do WattTime para obter a região da balancing authority para uma localização
+      tags:
+        - APIs Externas
+      parameters:
+        - name: lat
+          in: query
+          required: true
+          description: Latitude da localização
+          schema:
+            type: number
+            format: float
+            example: -23.5505
+        - name: lng
+          in: query
+          required: true
+          description: Longitude da localização
+          schema:
+            type: number
+            format: float
+            example: -46.6333
+      responses:
+        '200':
+          description: Dados da região
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ba:
+                    type: string
+                    example: BR-CS
+                  name:
+                    type: string
+                    example: Brazil Central-South Grid
+                  abbrev:
+                    type: string
+                    example: BR-CS
+        '400':
+          description: Parâmetros inválidos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Erro na consulta à API externa
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  schemas:
+    SolarReading:
+      type: object
+      properties:
+        deviceId:
+          type: string
+          example: sim-residential_small-abc123
+        profileType:
+          type: string
+          example: RESIDENTIAL_SMALL
+        timestamp:
+          type: string
+          format: date-time
+          example: '2025-05-28T13:30:00.000Z'
+        location:
+          type: string
+          example: São Paulo
+        coordinates:
+          type: object
+          properties:
+            lat:
+              type: number
+              format: float
+              example: -23.5505
+            lng:
+              type: number
+              format: float
+              example: -46.6333
+        kWh:
+          type: number
+          format: float
+          example: 1.25
+        factors:
+          type: object
+          properties:
+            hour:
+              type: string
+              example: '0.85'
+            season:
+              type: string
+              example: '0.92'
+            weather:
+              type: string
+              example: '0.78'
+            efficiency:
+              type: number
+              example: 0.78
+
+    LedgerEntry:
+      type: object
+      properties:
+        id:
+          type: string
+          example: voltanex-1590675432123-a1b2c3
+        data:
+          type: object
+          properties:
+            deviceId:
+              type: string
+              example: sim-residential_small-abc123
+            profileType:
+              type: string
+              example: RESIDENTIAL_SMALL
+            timestamp:
+              type: string
+              format: date-time
+              example: '2025-05-28T13:30:00.000Z'
+            location:
+              type: string
+              example: São Paulo
+            coordinates:
+              type: object
+              properties:
+                lat:
+                  type: number
+                  format: float
+                  example: -23.5505
+                lng:
+                  type: number
+                  format: float
+                  example: -46.6333
+            kWh:
+              type: number
+              format: float
+              example: 1.25
+            carbonCredits:
+              type: number
+              format: float
+              example: 1.25
+            emissionFactor:
+              type: number
+              format: float
+              example: 1.0
+            metadata:
+              type: object
+              properties:
+                conversionTimestamp:
+                  type: string
+                  format: date-time
+                  example: '2025-05-28T13:30:01.000Z'
+                conversionMethod:
+                  type: string
+                  example: static_factor
+                conversionVersion:
+                  type: string
+                  example: 1.0.0
+        timestamp:
+          type: string
+          format: date-time
+          example: '2025-05-28T13:30:01.000Z'
+        signature:
+          type: string
+          example: 7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          example: Parâmetros inválidos ou recurso não encontrado

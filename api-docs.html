@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>VOLTANEX API - Documentação</title>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://fonts.googleapis.com/css?family=Montserrat:300,400,700|Roboto:300,400,700" rel="stylesheet">
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        font-family: 'Roboto', sans-serif;
+      }
+      #redoc-container {
+        background-color: #f5f5f5;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="redoc-container"></div>
+    <script src="https://cdn.jsdelivr.net/npm/redoc@next/bundles/redoc.standalone.js"></script>
+    <script>
+      Redoc.init('./swagger.yaml', {
+        scrollYOffset: 50,
+        hideDownloadButton: false,
+        theme: {
+          colors: {
+            primary: {
+              main: '#1976d2'
+            }
+          },
+          sidebar: {
+            backgroundColor: '#f5f5f5',
+          }
+        }
+      }, document.getElementById('redoc-container'))
+    </script>
+  </body>
+</html>

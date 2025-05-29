@@ -1,7 +1,7 @@
-# Documentação da Demo 1 do VOLTANEX
+# Documentação da Demo 1 do VOLTENEX
 
 ## Visão Geral
-A Demo 1 do VOLTANEX é uma prova de conceito que implementa um sistema de ledger energia-para-carbono focado no Brasil. O sistema rastreia a produção de energia solar simulada, converte cada kWh em um offset conservador de 1 kg de CO₂, e armazena cada crédito em um ledger VOLTANEX público e assinado.
+A Demo 1 do VOLTENEX é uma prova de conceito que implementa um sistema de ledger energia-para-carbono focado no Brasil. O sistema rastreia a produção de energia solar simulada, converte cada kWh em um offset conservador de 1 kg de CO₂, e armazena cada crédito em um ledger VOLTANEX público e assinado.
 
 ## Componentes Principais
 1. **Simulador de Geração Solar**: Simula a geração de energia solar para diferentes perfis de instalação.
@@ -94,13 +94,4 @@ curl http://localhost:3000/api/converter/stats
    - Sem árvore de Merkle
    - Sem interface de usuário (apenas JSON via Postman/cURL)
 
-## Próximos Passos (Demo 2)
-A Demo 2 expandirá este sistema para incluir:
-- Integração com dispositivos reais
-- Uso de dados de rede marginal ao vivo
-- Implementação de hash-chain para segurança
-- Escalabilidade para 10.000 dispositivos
-- Dashboard web polido
 
-## Suporte
-Para questões ou problemas, entre em contato com a equipe VOLTANEX.

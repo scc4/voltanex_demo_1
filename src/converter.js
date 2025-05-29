@@ -43,9 +43,9 @@ class CarbonCreditConverter {
    * @returns {Object} Registro criado no ledger
    */
   processReading(reading) {
-    if (!reading || !reading.kWh || !reading.deviceId) {
-      throw new Error('Leitura inválida');
-    }
+   if (!reading || typeof reading.kWh !== 'number' || !reading.deviceId) {
+  throw new Error('Leitura inválida');
+}
     
     // Converte kWh para créditos de carbono
     const carbonCredits = this.convertToCredits(reading.kWh);
